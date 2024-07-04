@@ -53,15 +53,17 @@ func (h *EmployeeHandler) UpdateEmployee(c echo.Context) error {
 
 	id := c.Param("id")
 
-	if err := c.Bind(payload); err != nil {
+	if err := c.Bind(&payload); err != nil {
 		log.Println("Error binding request body:", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad Request"})
 	}
 
 	res, err := h.EmployeeService.Update(c.Request().Context(), payload, id)
 
-	fmt.Println(res)
-	return err
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad Request"})
+	}
+	return c.JSON(http.StatusAccepted, res)
 }
 
 func (h *EmployeeHandler) DeleteEmployee(c echo.Context) error {

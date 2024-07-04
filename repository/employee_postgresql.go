@@ -61,15 +61,11 @@ func (repo *EmployeeRepo) Update(ctx context.Context, id string, employee entity
 
 	qryUpdate := `UPDATE public.information SET name=$1, email=$2 WHERE id=$3 RETURNING *`
 
-	_, err := repo.db.ExecContext(ctx, qryUpdate, employee.Name, employee.Email, id)
+	err := repo.db.QueryRowContext(ctx, qryUpdate, employee.Name, employee.Email, id).Scan(&response.Name, &response.Email, &response.Id)
 	if err != nil {
 		log.Println("Error updating employee:", err)
-		return response, err
+		return entity.Employee{}, err
 	}
-
-	// idInt, _ := strconv.Atoi(id)
-
-	// response.Id = int64(idInt)
 
 	return response, err
 }
