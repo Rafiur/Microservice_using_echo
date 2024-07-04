@@ -11,9 +11,13 @@ import (
 func SetUpRouter(e *echo.Echo, db *sql.DB) {
 
 	//e.GET("/", allEmployees)
-	// e.POST("/create")
 
-	// InsertIntoDatabase(db, Employee{})
+	// e.POST("/add", insertEmployee)
+
+	// e.PUT("/update/:id", updateEmployee)
+
+	// e.DELETE("/delete/:id", deleteEmployee)
+
 
 	employeeRepo := repository.NewEmployeeRepo(db)
 	employeeService := service.NewEmployeeService(employeeRepo)
@@ -23,9 +27,4 @@ func SetUpRouter(e *echo.Echo, db *sql.DB) {
 
 	employeeHandler.MapEmployeeRoutes(employeeGroup)
 
-	// e.POST("/add", insertEmployee)
-
-	// e.PUT("/update/:id", updateEmployee)
-
-	// e.DELETE("/delete/:id", deleteEmployee)
 }

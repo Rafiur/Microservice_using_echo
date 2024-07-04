@@ -9,13 +9,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type Employee struct {
-	Id    int64  `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
+// type Employee struct {
+// 	Id    int64  `json:"id"`
+// 	Name  string `json:"name"`
+// 	Email string `json:"email"`
+// }
 
-type Employees []Employee
+// type Employees []Employee
 
 // const (
 // 	host     = "localhost"
