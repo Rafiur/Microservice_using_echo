@@ -19,6 +19,7 @@ func NewEmployeeRepo(db *sql.DB) *EmployeeRepo {
 }
 
 func (repo *EmployeeRepo) Insert(ctx context.Context, employee entity.CreateEmployee) (entity.Employee, error) {
+	
 	var response entity.Employee
 
 	qry := `INSERT INTO public.information (name, email) VALUES($1, $2) returning *`
