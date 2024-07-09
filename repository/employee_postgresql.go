@@ -71,6 +71,20 @@ func (repo *EmployeeRepo) Update(ctx context.Context, id string, employee entity
 	return response, err
 }
 
+func (repo *EmployeeRepo)UpdateFull(ctx context.Context, employee entity.CreateEmployee, id string) (entity.UpdateEmployee, error){
+	var response entity.UpdateEmployee
+
+	qryUpdate := `UPDATE public.information SET name=$1, email=$2 WHERE id=$3 RETURNING *`
+
+	err := repo.db.QueryRowContext(ctx, qryUpdate, employee.Name, employee.Email, id).Scan(&response.Name, &response.Email, &response.Id)
+	if err != nil {
+		log.Println("Error updating employee:", err)
+		return entity.UpdateEmployee{}, err
+	}
+
+	return response, err
+}
+
 func (repo *EmployeeRepo) Delete(ctx context.Context, id string, employee entity.Employee) error {
 
 	qry := `DELETE from public.information WHERE id=$1`

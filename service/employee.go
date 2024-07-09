@@ -24,11 +24,13 @@ type Repository interface {
 	Insert(ctx context.Context, employee entity.CreateEmployee) (entity.Employee, error)
 	GetAll(ctx context.Context) ([]entity.Employee, error)
 	Update(ctx context.Context, id string, employee entity.CreateEmployee) (entity.Employee, error)
+	UpdateFull(ctx context.Context, employee entity.CreateEmployee, id string) (entity.UpdateEmployee, error)
 	Delete(ctx context.Context, id string, employee entity.Employee) error
 }
 
 type GrpcRepo interface {
 	CreateSalary(ctx context.Context, in *proto.CreateSalaryRequest) (*proto.CreateSalaryResponse, error)
+	UpdateSalary(ctx context.Context, in *proto.UpdateSalaryRequest) (*proto.UpdateSalaryResponse, error)
 }
 
 func (s *EmployeeService) GetAll(ctx context.Context) ([]entity.Employee, error) {
@@ -43,12 +45,13 @@ func (s *EmployeeService) GetAll(ctx context.Context) ([]entity.Employee, error)
 func (s *EmployeeService) Insert(ctx context.Context, employee entity.CreateEmployee) (entity.Employee, error) {
 
 	res, err := s.repository.Insert(ctx, employee)
+	fmt.Println(err)
 
 	payload := &proto.CreateSalaryRequest{
 		EmployeeId:   int32(res.Id),
 		SalaryAmount: int32(employee.SalaryEvaluation.Salary_amount),
 		Project:      employee.SalaryEvaluation.Project,
-		JoingDate:    employee.SalaryEvaluation.Joining_Date,
+		JoiningDate:  employee.SalaryEvaluation.Joining_Date,
 	}
 
 	_, err = s.grpcRepo.CreateSalary(ctx, payload)
@@ -67,7 +70,30 @@ func (s *EmployeeService) Update(ctx context.Context, employee entity.CreateEmpl
 	if err != nil {
 		return res, nil
 	}
+
 	return res, nil
+}
+
+func (s *EmployeeService) UpdateFull(ctx context.Context, employee entity.CreateEmployee, id string) (*proto.UpdateSalaryResponse, error){
+	
+	res, err := s.repository.UpdateFull(ctx, employee, id)
+
+	fmt.Println(err)
+
+	payload := &proto.UpdateSalaryRequest{
+		EmployeeId:   int32(res.Id),
+		SalaryAmount: int32(employee.SalaryEvaluation.Salary_amount),
+		Project:      employee.SalaryEvaluation.Project,
+		JoiningDate:  employee.SalaryEvaluation.Joining_Date,
+	}
+
+	resp, err := s.grpcRepo.UpdateSalary(ctx, payload)
+
+	//fmt.Println(resp)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
 }
 
 func (s *EmployeeService) Delete(ctx context.Context, id string, employee entity.Employee) error {

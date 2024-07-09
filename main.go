@@ -17,7 +17,9 @@ func main() {
 	fmt.Println(err)
 	e := echo.New()
 
-	conn, err := grpc.Dial(":2101", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(20000648), grpc.MaxCallSendMsgSize(20000648)))
+	conn, err := grpc.NewClient(":2101", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(20000648), grpc.MaxCallSendMsgSize(20000648)))
+	
+	fmt.Println(err)
 	defer conn.Close()
 
 	v1.SetUpRouter(e, db, conn)

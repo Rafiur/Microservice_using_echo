@@ -24,6 +24,7 @@ func (h *EmployeeHandler) MapEmployeeRoutes(employeeGroup *echo.Group) {
 	employeeGroup.GET("/all", h.GetAllEmployee)
 	employeeGroup.POST("/insert", h.InsertEmployee)
 	employeeGroup.PUT("/update/:id", h.UpdateEmployee)
+	employeeGroup.PUT("/update_full/:id", h.UpdateEmployeeWithSalary)
 	employeeGroup.DELETE("/delete/:id", h.DeleteEmployee)
 }
 
@@ -65,6 +66,27 @@ func (h *EmployeeHandler) UpdateEmployee(c echo.Context) error {
 	}
 	return c.JSON(http.StatusAccepted, res)
 }
+
+func (h *EmployeeHandler) UpdateEmployeeWithSalary(c echo.Context) error {
+	var payload entity.CreateEmployee
+
+	id := c.Param("id")
+
+	if err := c.Bind(&payload); err != nil {
+		log.Println("Error binding request body:", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad Request binding"})
+	}
+
+	res, err := h.EmployeeService.UpdateFull(c.Request().Context(), payload, id)
+
+	fmt.Println(err)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad Request function"})
+	}
+	return c.JSON(http.StatusAccepted, res)
+}
+
 
 func (h *EmployeeHandler) DeleteEmployee(c echo.Context) error {
 	var payload entity.Employee

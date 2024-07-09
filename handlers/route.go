@@ -22,6 +22,7 @@ func SetUpRouter(e *echo.Echo, db *sql.DB, conn *grpc.ClientConn) {
 
 	grpcClient := proto.NewEmployeeToSalaryClient(conn)
 	grpcRepo := repository.NewGrcpClientRepository(grpcClient)
+
 	employeeRepo := repository.NewEmployeeRepo(db)
 	employeeService := service.NewEmployeeService(employeeRepo, grpcRepo)
 	employeeHandler := NewEmployeeHandler(employeeService)

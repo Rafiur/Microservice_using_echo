@@ -18,3 +18,10 @@ type CreateEmployee struct {
 	Email            string           `json:"email"`
 	SalaryEvaluation SalaryEvaluation `json:"salary_evaluation"`
 }
+
+type UpdateEmployee struct{
+	Id    int64  `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	SalaryEvaluation SalaryEvaluation `json:"salary_evaluation"`
+}
