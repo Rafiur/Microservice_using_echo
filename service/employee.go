@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"example.com/PROJECT_1/entity"
 	"example.com/PROJECT_1/entity/proto"
@@ -22,6 +23,7 @@ func NewEmployeeService(repository Repository, grpcRepo GrpcRepo) *EmployeeServi
 
 type Repository interface {
 	Insert(ctx context.Context, employee entity.CreateEmployee) (entity.Employee, error)
+	AddWithDeptRepo(ctx context.Context, employee_dept entity.CreateEmployeeWithDepartment) (entity.ResponseCreatewithDept, error)
 	GetAll(ctx context.Context) ([]entity.Employee, error)
 	Update(ctx context.Context, id string, employee entity.CreateEmployee) (entity.Employee, error)
 	UpdateFull(ctx context.Context, employee entity.CreateEmployee, id string) (entity.UpdateEmployee, error)
@@ -30,16 +32,8 @@ type Repository interface {
 
 type GrpcRepo interface {
 	CreateSalary(ctx context.Context, in *proto.CreateSalaryRequest) (*proto.CreateSalaryResponse, error)
+	GetAllSalary(ctx context.Context, in *proto.GetAllSalaryRequest) ([]*proto.EmployeeSalary, error)
 	UpdateSalary(ctx context.Context, in *proto.UpdateSalaryRequest) (*proto.UpdateSalaryResponse, error)
-}
-
-func (s *EmployeeService) GetAll(ctx context.Context) ([]entity.Employee, error) {
-	employees, err := s.repository.GetAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return employees, nil
 }
 
 func (s *EmployeeService) Insert(ctx context.Context, employee entity.CreateEmployee) (entity.Employee, error) {
@@ -64,6 +58,45 @@ func (s *EmployeeService) Insert(ctx context.Context, employee entity.CreateEmpl
 	return res, nil
 }
 
+func (s *EmployeeService) GetAll(ctx context.Context) ([]entity.Employee, error) {
+	employees, err := s.repository.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return employees, nil
+}
+
+func (s *EmployeeService) GetAllWithSalary(ctx context.Context) ([]entity.GetAllEmployee, error) {
+	employee_salaries, err := s.grpcRepo.GetAllSalary(ctx, &proto.GetAllSalaryRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	var employees []entity.GetAllEmployee
+	for _, salary := range employee_salaries {
+		employees = append(employees, entity.GetAllEmployee{
+			Id:            int64(salary.EmployeeId),
+			Name:          salary.Name,
+			Email:         salary.Email,
+			Joining_Date:  salary.JoiningDate,
+			Project:       salary.Project,
+			Salary_amount: int(salary.SalaryAmount),
+		})
+	}
+	fmt.Println(employees)
+	return employees, nil
+}
+//same databse different table insertion
+func (s *EmployeeService) AddWithDeptService(ctx context.Context, employee_dept entity.CreateEmployeeWithDepartment) (entity.ResponseCreatewithDept, error) {
+	res, err := s.repository.AddWithDeptRepo(ctx, employee_dept)
+	if err != nil {
+		log.Println("Service function failure:", err)
+	}
+	fmt.Println("Service res:", res)
+	return res, nil
+}
+
 func (s *EmployeeService) Update(ctx context.Context, employee entity.CreateEmployee, id string) (entity.Employee, error) {
 
 	res, err := s.repository.Update(ctx, id, employee)
@@ -74,8 +107,8 @@ func (s *EmployeeService) Update(ctx context.Context, employee entity.CreateEmpl
 	return res, nil
 }
 
-func (s *EmployeeService) UpdateFull(ctx context.Context, employee entity.CreateEmployee, id string) (*proto.UpdateSalaryResponse, error){
-	
+func (s *EmployeeService) UpdateFull(ctx context.Context, employee entity.CreateEmployee, id string) (*proto.UpdateSalaryResponse, error) {
+
 	res, err := s.repository.UpdateFull(ctx, employee, id)
 
 	fmt.Println(err)

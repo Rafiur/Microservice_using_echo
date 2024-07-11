@@ -22,7 +22,9 @@ func NewEmployeeHandler(employeeService *service.EmployeeService) *EmployeeHandl
 
 func (h *EmployeeHandler) MapEmployeeRoutes(employeeGroup *echo.Group) {
 	employeeGroup.GET("/all", h.GetAllEmployee)
+	employeeGroup.GET("/allsalary", h.GetAllEmployeeWithSalary)
 	employeeGroup.POST("/insert", h.InsertEmployee)
+	employeeGroup.POST("/addwdept", h.AddEmployeeWithDept)
 	employeeGroup.PUT("/update/:id", h.UpdateEmployee)
 	employeeGroup.PUT("/update_full/:id", h.UpdateEmployeeWithSalary)
 	employeeGroup.DELETE("/delete/:id", h.DeleteEmployee)
@@ -36,6 +38,15 @@ func (h *EmployeeHandler) GetAllEmployee(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, res)
 }
 
+func (h *EmployeeHandler) GetAllEmployeeWithSalary(c echo.Context) error {
+	res, err := h.EmployeeService.GetAllWithSalary(c.Request().Context())
+	if err != nil {
+		log.Println("Handler function:", err)
+	}
+	fmt.Println(res)
+	return c.JSON(http.StatusAccepted, res)
+}
+
 func (h *EmployeeHandler) InsertEmployee(c echo.Context) error {
 	var payload entity.CreateEmployee
 
@@ -46,6 +57,19 @@ func (h *EmployeeHandler) InsertEmployee(c echo.Context) error {
 
 	res, err := h.EmployeeService.Insert(c.Request().Context(), payload)
 	fmt.Println(err)
+	return c.JSON(http.StatusAccepted, res)
+}
+//same databse different table insertion
+func (h *EmployeeHandler) AddEmployeeWithDept(c echo.Context) error {
+	var payload entity.CreateEmployeeWithDepartment
+
+	if err := c.Bind(&payload); err != nil {
+		log.Println("Error binding request body:", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad Request"})
+	}
+	res, err := h.EmployeeService.AddWithDeptService(c.Request().Context(), payload)
+	fmt.Println(err)
+	fmt.Println("Handler res:", res)
 	return c.JSON(http.StatusAccepted, res)
 }
 
@@ -86,7 +110,6 @@ func (h *EmployeeHandler) UpdateEmployeeWithSalary(c echo.Context) error {
 	}
 	return c.JSON(http.StatusAccepted, res)
 }
-
 
 func (h *EmployeeHandler) DeleteEmployee(c echo.Context) error {
 	var payload entity.Employee

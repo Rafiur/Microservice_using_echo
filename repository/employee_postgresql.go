@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 
 	"example.com/PROJECT_1/entity"
@@ -19,13 +20,35 @@ func NewEmployeeRepo(db *sql.DB) *EmployeeRepo {
 }
 
 func (repo *EmployeeRepo) Insert(ctx context.Context, employee entity.CreateEmployee) (entity.Employee, error) {
-	
+
 	var response entity.Employee
 
 	qry := `INSERT INTO public.information (name, email) VALUES($1, $2) returning *`
 
 	err := repo.db.QueryRowContext(ctx, qry, employee.Name, employee.Email).Scan(&response.Name, &response.Email, &response.Id)
 
+	return response, err
+}
+//same databse different table insertion
+func (repo *EmployeeRepo) AddWithDeptRepo(ctx context.Context, employee_dept entity.CreateEmployeeWithDepartment) (entity.ResponseCreatewithDept, error) {
+
+	var response entity.ResponseCreatewithDept
+
+	qry := `
+		WITH ins AS(
+			INSERT INTO public.information (name, email)
+			VALUES ($1, $2)
+			RETURNING id
+		)
+		INSERT INTO public.department (name, manager,employee_id)
+		VALUES ($3, $4, (SELECT id FROM ins))
+		RETURNING id, $1 AS employee_name, $2 AS employee_email, $3 AS department_name, $4 AS department_manager, (SELECT id FROM ins) AS employee_id
+	`
+
+	err := repo.db.QueryRowContext(ctx, qry, employee_dept.Employee_Name, employee_dept.Employee_Email, employee_dept.Department_Name, employee_dept.Department_Manager).
+		Scan(&response.Department_Id, &response.Employee_Name, &response.Employee_Email, &response.Department_Name, &response.Department_Manager, &response.EmployeeId)
+
+	fmt.Println("Repo response:", response)
 	return response, err
 }
 
@@ -71,7 +94,7 @@ func (repo *EmployeeRepo) Update(ctx context.Context, id string, employee entity
 	return response, err
 }
 
-func (repo *EmployeeRepo)UpdateFull(ctx context.Context, employee entity.CreateEmployee, id string) (entity.UpdateEmployee, error){
+func (repo *EmployeeRepo) UpdateFull(ctx context.Context, employee entity.CreateEmployee, id string) (entity.UpdateEmployee, error) {
 	var response entity.UpdateEmployee
 
 	qryUpdate := `UPDATE public.information SET name=$1, email=$2 WHERE id=$3 RETURNING *`

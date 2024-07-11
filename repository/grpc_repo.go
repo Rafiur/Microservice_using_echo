@@ -28,6 +28,17 @@ func (repo *GrpcClientRepository) CreateSalary(ctx context.Context, in *proto.Cr
 	return res, nil
 }
 
+func (repo *GrpcClientRepository) GetAllSalary(ctx context.Context, in *proto.GetAllSalaryRequest) ([]*proto.EmployeeSalary, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	res, err := repo.client.GetAllSalary(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return res.Salaries, nil
+}
+
 func (repo *GrpcClientRepository) UpdateSalary(ctx context.Context, in *proto.UpdateSalaryRequest) (*proto.UpdateSalaryResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
