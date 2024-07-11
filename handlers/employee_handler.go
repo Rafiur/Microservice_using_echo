@@ -21,13 +21,18 @@ func NewEmployeeHandler(employeeService *service.EmployeeService) *EmployeeHandl
 }
 
 func (h *EmployeeHandler) MapEmployeeRoutes(employeeGroup *echo.Group) {
+	//api calls
 	employeeGroup.GET("/all", h.GetAllEmployee)
-	employeeGroup.GET("/allsalary", h.GetAllEmployeeWithSalary)
-	employeeGroup.POST("/insert", h.InsertEmployee)
-	employeeGroup.POST("/addwdept", h.AddEmployeeWithDept)
+	employeeGroup.POST("/insert", h.InsertEmployee) //called for both grpc and api
 	employeeGroup.PUT("/update/:id", h.UpdateEmployee)
-	employeeGroup.PUT("/update_full/:id", h.UpdateEmployeeWithSalary)
 	employeeGroup.DELETE("/delete/:id", h.DeleteEmployee)
+	//intra database insertion
+	employeeGroup.POST("/addwdept", h.AddEmployeeWithDept)
+	employeeGroup.GET("/allwdept", h.GetAllEmployeeWithDept)
+	//grpc calls
+	employeeGroup.GET("/allsalary", h.GetAllEmployeeWithSalary)
+	employeeGroup.PUT("/update_full/:id", h.UpdateEmployeeWithSalary)
+	
 }
 
 func (h *EmployeeHandler) GetAllEmployee(c echo.Context) error {
@@ -47,6 +52,15 @@ func (h *EmployeeHandler) GetAllEmployeeWithSalary(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, res)
 }
 
+func (h *EmployeeHandler) GetAllEmployeeWithDept(c echo.Context) error{
+	res, err := h.EmployeeService.GetAllWithDeptService(c.Request().Context())
+	if err != nil{
+		log.Println("Handler function:",err)
+	}
+	fmt.Println("Handler res:",res)
+	return c.JSON(http.StatusAccepted, res)
+}
+
 func (h *EmployeeHandler) InsertEmployee(c echo.Context) error {
 	var payload entity.CreateEmployee
 
@@ -59,7 +73,8 @@ func (h *EmployeeHandler) InsertEmployee(c echo.Context) error {
 	fmt.Println(err)
 	return c.JSON(http.StatusAccepted, res)
 }
-//same databse different table insertion
+
+// same databse different table insertion
 func (h *EmployeeHandler) AddEmployeeWithDept(c echo.Context) error {
 	var payload entity.CreateEmployeeWithDepartment
 

@@ -24,6 +24,7 @@ func NewEmployeeService(repository Repository, grpcRepo GrpcRepo) *EmployeeServi
 type Repository interface {
 	Insert(ctx context.Context, employee entity.CreateEmployee) (entity.Employee, error)
 	AddWithDeptRepo(ctx context.Context, employee_dept entity.CreateEmployeeWithDepartment) (entity.ResponseCreatewithDept, error)
+	GetAllWithDeptRepo(ctx context.Context)([]entity.ResponseCreatewithDept, error)
 	GetAll(ctx context.Context) ([]entity.Employee, error)
 	Update(ctx context.Context, id string, employee entity.CreateEmployee) (entity.Employee, error)
 	UpdateFull(ctx context.Context, employee entity.CreateEmployee, id string) (entity.UpdateEmployee, error)
@@ -95,6 +96,15 @@ func (s *EmployeeService) AddWithDeptService(ctx context.Context, employee_dept 
 	}
 	fmt.Println("Service res:", res)
 	return res, nil
+}
+
+func (s *EmployeeService) GetAllWithDeptService(ctx context.Context) ([]entity.ResponseCreatewithDept, error){
+	res, err := s.repository.GetAllWithDeptRepo(ctx)
+	if err != nil{
+		log.Println("Service function:", err)
+	}
+	return res, err
+
 }
 
 func (s *EmployeeService) Update(ctx context.Context, employee entity.CreateEmployee, id string) (entity.Employee, error) {

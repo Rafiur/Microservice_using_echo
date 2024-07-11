@@ -29,7 +29,8 @@ func (repo *EmployeeRepo) Insert(ctx context.Context, employee entity.CreateEmpl
 
 	return response, err
 }
-//same databse different table insertion
+
+// same databse different table insertion
 func (repo *EmployeeRepo) AddWithDeptRepo(ctx context.Context, employee_dept entity.CreateEmployeeWithDepartment) (entity.ResponseCreatewithDept, error) {
 
 	var response entity.ResponseCreatewithDept
@@ -77,6 +78,42 @@ func (repo *EmployeeRepo) GetAll(ctx context.Context) ([]entity.Employee, error)
 	}
 
 	return employees, err
+}
+
+func (repo *EmployeeRepo) GetAllWithDeptRepo(ctx context.Context) ([]entity.ResponseCreatewithDept, error) {
+
+	qry := `
+		SELECT 
+			i.id AS employee_id,
+			i.name AS employee_name,
+			i.email AS employee_email,
+			d.id AS department_id,
+			d.name AS department_name,
+			d.manager AS department_manager
+		FROM 
+			public.information i
+		JOIN
+			public.department d ON i.id = d.employee_id
+		`
+
+	rows, err := repo.db.QueryContext(ctx, qry)
+	if err != nil {
+		log.Println("Error querying database:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	employeesWithDept := []entity.ResponseCreatewithDept{} // Slice to hold all employees
+
+	for rows.Next() {
+		var employeeWithDept entity.ResponseCreatewithDept
+		if err := rows.Scan(&employeeWithDept.EmployeeId, &employeeWithDept.Employee_Email, &employeeWithDept.Employee_Email, &employeeWithDept.Department_Id, &employeeWithDept.Department_Name, &employeeWithDept.Department_Manager); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		employeesWithDept = append(employeesWithDept, employeeWithDept)
+	}
+	fmt.Println(employeesWithDept)
+	return employeesWithDept, err
 }
 
 func (repo *EmployeeRepo) Update(ctx context.Context, id string, employee entity.CreateEmployee) (entity.Employee, error) {
